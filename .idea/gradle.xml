@@ -1,14 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$USER_HOME$/Code/BAB" name="buildabrowser">
+                <projects>
+                  <project path="$USER_HOME$/Code/BAB" />
+                  <project path="$USER_HOME$/Code/BAB/Browser" />
+                  <project path="$USER_HOME$/Code/BAB/CSSBase" />
+                  <project path="$USER_HOME$/Code/BAB/CSSEngine" />
+                  <project path="$USER_HOME$/Code/BAB/Common" />
+                  <project path="$USER_HOME$/Code/BAB/DOM" />
+                  <project path="$USER_HOME$/Code/BAB/Fetch" />
+                  <project path="$USER_HOME$/Code/BAB/HTML" />
+                  <project path="$USER_HOME$/Code/BAB/HTMLParser" />
+                  <project path="$USER_HOME$/Code/BAB/Infra" />
+                  <project path="$USER_HOME$/Code/BAB/Network" />
+                  <project path="$USER_HOME$/Code/BAB/PainterCore" />
+                  <project path="$USER_HOME$/Code/BAB/PainterJava2D" />
+                  <project path="$USER_HOME$/Code/BAB/PainterSkija" />
+                  <project path="$USER_HOME$/Code/BAB/Renderer" />
+                  <project path="$USER_HOME$/Code/BAB/Stream" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
         <option name="testRunner" value="CHOOSE_PER_TEST" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$USER_HOME$/Code/BAB" />
+            <option value="$USER_HOME$/Code/BAB/Browser" />
+            <option value="$USER_HOME$/Code/BAB/CSSBase" />
+            <option value="$USER_HOME$/Code/BAB/CSSEngine" />
+            <option value="$USER_HOME$/Code/BAB/Common" />
+            <option value="$USER_HOME$/Code/BAB/DOM" />
+            <option value="$USER_HOME$/Code/BAB/Fetch" />
+            <option value="$USER_HOME$/Code/BAB/HTML" />
+            <option value="$USER_HOME$/Code/BAB/HTMLParser" />
+            <option value="$USER_HOME$/Code/BAB/Infra" />
+            <option value="$USER_HOME$/Code/BAB/Network" />
+            <option value="$USER_HOME$/Code/BAB/PainterCore" />
+            <option value="$USER_HOME$/Code/BAB/PainterJava2D" />
+            <option value="$USER_HOME$/Code/BAB/PainterSkija" />
+            <option value="$USER_HOME$/Code/BAB/Renderer" />
+            <option value="$USER_HOME$/Code/BAB/Stream" />
           </set>
         </option>
       </GradleProjectSettings>

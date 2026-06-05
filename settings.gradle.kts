@@ -24,3 +24,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "BuildABrowser Droided"
 include(":app")
+
+includeBuild("/home/jason/Code/BAB") {
+    dependencySubstitution {
+        substitute(module("net.buildabrowser.babbrowser:Renderer")).using(project(":Renderer"))
+    }
+}

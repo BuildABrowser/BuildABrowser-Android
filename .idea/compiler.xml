@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="21" />
+    <bytecodeTargetLevel target="21">
+      <module name="buildabrowser.Java2DPainter" target="24" />
+      <module name="buildabrowser.Java2DPainter.main" target="24" />
+      <module name="buildabrowser.Java2DPainter.test" target="24" />
+      <module name="buildabrowser.SkijaPainter" target="24" />
+      <module name="buildabrowser.SkijaPainter.main" target="24" />
+      <module name="buildabrowser.SkijaPainter.test" target="24" />
+    </bytecodeTargetLevel>
   </component>
 </project>
