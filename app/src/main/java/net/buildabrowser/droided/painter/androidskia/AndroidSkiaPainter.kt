@@ -5,8 +5,8 @@ import net.buildabrowser.babbrowser.painter.core.Painter
 import net.buildabrowser.babbrowser.painter.core.ResourceLoader
 
 open class AndroidSkiaPainter : Painter {
-    override fun resourceLoader(): ResourceLoader? {
-        TODO("Not yet implemented")
+    override fun resourceLoader(): ResourceLoader {
+        return ASResourceLoader()
     }
 
     override fun createPaintBitMap(

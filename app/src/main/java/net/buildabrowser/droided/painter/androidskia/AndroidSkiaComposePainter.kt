@@ -11,13 +11,18 @@ import net.buildabrowser.babbrowser.painter.core.CanvasCallbacks
 class AndroidSkiaComposePainter : AndroidSkiaPainter() {
 
     @Composable
-    fun PainterCanvas(callbacks: CanvasCallbacks, modifier: Modifier = Modifier) {
+    fun PainterCanvas(
+        callbacks: CanvasCallbacks,
+        repaintTrigger: () -> Int,
+        modifier: Modifier = Modifier
+    ) {
         Canvas(modifier = modifier.fillMaxSize()) {
+            repaintTrigger()
             callbacks.layout(size.width, size.height)
             drawIntoCanvas { canvas ->
                 val graphics = canvas.nativeCanvas
                 val wrapper = ASPaintCanvas(graphics)
-                callbacks.paint(wrapper);
+                callbacks.paint(wrapper)
             }
         }
     }

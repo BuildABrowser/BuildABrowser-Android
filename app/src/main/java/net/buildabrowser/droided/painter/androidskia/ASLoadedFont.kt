@@ -21,6 +21,7 @@ class ASLoadedFont(
         canvas: Canvas, rawPaint: Paint
     ) {
         if (text.isEmpty()) return
+        rawPaint.textSize = fontOptions.size
 
         var windowStart = 0
         var currentX = x
