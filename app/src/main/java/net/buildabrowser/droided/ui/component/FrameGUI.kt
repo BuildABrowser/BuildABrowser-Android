@@ -51,10 +51,10 @@ class FrameGUI(private val frame: Frame) {
             val listener = Runnable {
                 repaintTick++
             }
-            frame.renderer.addRepaintListener(listener)
+            frame.addRepaintListener(listener)
 
             onDispose {
-                frame.renderer.removeRepaintListener(listener)
+                frame.removeRepaintListener(listener)
             }
         }
 

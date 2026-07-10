@@ -5,17 +5,18 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.core.graphics.withMatrix
+import androidx.core.graphics.withSave
+import net.buildabrowser.babbrowser.painter.core.ClipShapeSpec
+import net.buildabrowser.babbrowser.painter.core.FontMetrics
 import net.buildabrowser.babbrowser.painter.core.LoadedImage
 import net.buildabrowser.babbrowser.painter.core.Paint
 import net.buildabrowser.babbrowser.painter.core.PaintBitMap
 import net.buildabrowser.babbrowser.painter.core.PaintCanvas
 import net.buildabrowser.babbrowser.painter.core.Transform
-import net.buildabrowser.babbrowser.painter.core.FontMetrics
 import java.util.ArrayDeque
 import java.util.Deque
 import java.util.function.Consumer
 import android.graphics.Paint as AndroidPaint
-import androidx.core.graphics.withSave
 
 class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
 
@@ -85,6 +86,18 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
     ) {
         canvas.withSave {
             canvas.clipRect(RectF(x, y, w, h))
+            paintFunc.accept(this@ASPaintCanvas)
+        }
+    }
+
+    override fun withShapedClip(
+        shapeFunc: Consumer<ClipShapeSpec>,
+        paintFunc: Consumer<PaintCanvas>
+    ) {
+        canvas.withSave {
+            val spec = ASClipShapeSpec()
+            shapeFunc.accept(spec)
+            canvas.clipPath(spec.path())
             paintFunc.accept(this@ASPaintCanvas)
         }
     }

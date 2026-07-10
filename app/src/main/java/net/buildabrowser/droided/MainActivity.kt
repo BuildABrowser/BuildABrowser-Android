@@ -1,5 +1,6 @@
 package net.buildabrowser.droided
 
+import android.app.ActivityManager
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -14,6 +15,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import net.buildabrowser.babbrowser.painter.core.Painter
 import net.buildabrowser.babbrowser.renderer.RenderingEngine
 import net.buildabrowser.babbrowser.renderer.loader.DocumentLoaderRegistry
@@ -58,7 +61,7 @@ fun Browser(context: Context, modifier: Modifier = Modifier) {
 
 fun createFrame(engine: RenderingEngine) : Frame {
     val frame = engine.createFrame()
-    frame.navigate(URI("https://buildabrowser.net/"))
+    frame.navigate(URI("https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html"))
     return frame
 }
 
