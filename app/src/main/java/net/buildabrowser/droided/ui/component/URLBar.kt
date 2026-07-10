@@ -1,0 +1,105 @@
+package net.buildabrowser.droided.ui.component
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.util.Consumer
+import net.buildabrowser.babbrowser.common.util.CommonUtil
+import net.buildabrowser.babbrowser.common.util.CommonUtil.tryOrNull
+import net.buildabrowser.babbrowser.network.URLUtil
+import java.net.URI
+import java.net.URLEncoder
+
+private const val SEARCH_QUERY = "https://html.duckduckgo.com/html/?q=%s"
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun URLField(onNavigate: Consumer<URI>, modifier: Modifier = Modifier) {
+    val textState = rememberTextFieldState()
+    val colors = SearchBarDefaults.colors()
+    val keyboardController = LocalSoftwareKeyboardController.current
+    // Can't use SearchBar, it has a minimum height
+    BasicTextField(
+        modifier = modifier
+            .height(40.dp)
+            .background(
+                colors.containerColor,
+                RoundedCornerShape(20.dp)
+            ),
+        textStyle = TextStyle(
+            color = colors.inputFieldColors.focusedTextColor,
+            fontSize = 16.sp),
+        cursorBrush = SolidColor(colors.inputFieldColors.focusedTextColor),
+        value = textState.text.toString(),
+        onValueChange = { textState.edit { replace(0, length, it) } },
+        maxLines = 1,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                val url = searchToURL(textState.text.toString())
+                onNavigate.accept(url)
+                keyboardController?.hide()
+            }
+        ),
+        decorationBox = { innerTextField ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp, 0.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                if (textState.text.isEmpty()) {
+                    Text(
+                        "Search or enter a URL...",
+                        color = colors.inputFieldColors.focusedPlaceholderColor,
+                        fontSize = 16.sp
+                    )
+                }
+                innerTextField()
+            }
+        }
+    )
+}
+
+private fun searchToURL(urlText: String): URI {
+    var uri: URI? = tryOrNull {
+        URLUtil.createURL( // Some websites don't support https, so use http and hope we get redirected
+            if (urlText.contains(":")) urlText else "http://$urlText"
+        )
+    }
+
+    val couldBeDataURL =
+        urlText.startsWith("data:")
+                && urlText.indexOf('/') < urlText.indexOf(',')
+                && urlText.indexOf('/') != -1
+    if (
+        uri == null
+        || !(urlText.contains(".") || couldBeDataURL)
+        || urlText.contains(" ")
+    ) {
+        val searchQuery = URLEncoder.encode(urlText, "UTF-8")
+        val searchURL: String = String.format(SEARCH_QUERY, searchQuery)
+        uri = CommonUtil.rethrow { URLUtil.createURL(searchURL) }
+    }
+
+    return uri
+}

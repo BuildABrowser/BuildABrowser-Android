@@ -16,6 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BuildABrowserDroided"
         android:largeHeap="true"
+        android:usesCleartextTraffic="true"
     >
         <activity
             android:name=".MainActivity"
