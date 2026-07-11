@@ -7,13 +7,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import net.buildabrowser.babbrowser.painter.core.CanvasCallbacks
 import net.buildabrowser.babbrowser.painter.core.PaintCanvas
 import net.buildabrowser.babbrowser.renderer.uistate.Frame
 import net.buildabrowser.droided.painter.androidskia.AndroidSkiaComposePainter
 
-class FrameGUI(private val frame: Frame) {
+class FrameGUI(val frame: Frame) {
 
     inner class FrameCallbacks(private val scaling: Float) : CanvasCallbacks {
         private var width = 0f

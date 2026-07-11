@@ -9,14 +9,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -26,17 +30,35 @@ import androidx.core.util.Consumer
 import net.buildabrowser.babbrowser.common.util.CommonUtil
 import net.buildabrowser.babbrowser.common.util.CommonUtil.tryOrNull
 import net.buildabrowser.babbrowser.network.URLUtil
+import net.buildabrowser.babbrowser.renderer.uistate.Frame
+import net.buildabrowser.babbrowser.renderer.uistate.event.FrameEventListener
 import java.net.URI
 import java.net.URLEncoder
 
 private const val SEARCH_QUERY = "https://html.duckduckgo.com/html/?q=%s"
+// TODO: Share the same constant as the code to make a new tab
+// TODO: Better yet, detect if we're on the initial page (as the user may navigate here later)
+private const val DEFAULT_TAB = "https://buildabrowser.net/"
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun URLField(onNavigate: Consumer<URI>, modifier: Modifier = Modifier) {
+fun URLField(
+    frame: Frame,
+    onNavigate: Consumer<URI>,
+    modifier: Modifier = Modifier
+) {
     val textState = rememberTextFieldState()
     val colors = SearchBarDefaults.colors()
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    DisposableEffect(frame.renderer) {
+        val listener = URLListener(textState, focusManager)
+        frame.addEventListener(listener, true)
+        // TODO: Also need to add a method to remove the event listener
+        onDispose {  }
+    }
+
     // Can't use SearchBar, it has a minimum height
     BasicTextField(
         modifier = modifier
@@ -82,8 +104,8 @@ fun URLField(onNavigate: Consumer<URI>, modifier: Modifier = Modifier) {
 
 private fun searchToURL(urlText: String): URI {
     var uri: URI? = tryOrNull {
-        URLUtil.createURL( // Some websites don't support https, so use http and hope we get redirected
-            if (urlText.contains(":")) urlText else "http://$urlText"
+        URLUtil.createURL( // TODO: Fallback to http if https not supported
+            if (urlText.contains(":")) urlText else "https://$urlText"
         )
     }
 
@@ -102,4 +124,17 @@ private fun searchToURL(urlText: String): URI {
     }
 
     return uri
+}
+
+private class URLListener(
+    private val shownURL: TextFieldState,
+    private val focusManager: FocusManager
+) : FrameEventListener {
+
+    override fun onURLChange(url: URI) {
+        val newText = if (url.toString() != DEFAULT_TAB) url.toString() else ""
+        shownURL.edit { replace(0, length, newText) }
+        focusManager.clearFocus()
+    }
+
 }
