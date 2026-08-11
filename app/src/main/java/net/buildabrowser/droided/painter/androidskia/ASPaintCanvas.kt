@@ -107,6 +107,10 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
         canvas.drawRect(RectF(x, y, x + w, y + h), rawPaint)
     }
 
+    override fun drawCircle(x: Float, y: Float, r: Float) {
+        canvas.drawCircle(x + r, y + r, r, rawPaint)
+    }
+
     override fun drawText(x: Float, y: Float, text: String) {
         currentFont.drawText(x, y, text, canvas, rawPaint)
     }

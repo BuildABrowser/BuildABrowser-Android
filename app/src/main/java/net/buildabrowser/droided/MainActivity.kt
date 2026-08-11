@@ -1,6 +1,7 @@
 package net.buildabrowser.droided
 
 import android.app.Activity
+import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -22,12 +23,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
+import net.buildabrowser.babbrowser.cookies.stores.InMemoryCookieStore;
+import net.buildabrowser.babbrowser.fetch.FetchConfig
+import net.buildabrowser.babbrowser.html.ua.UAUIFeatures
 import net.buildabrowser.babbrowser.painter.core.Painter
 import net.buildabrowser.babbrowser.renderer.RenderingEngine
 import net.buildabrowser.babbrowser.renderer.loader.DocumentLoaderRegistry
 import net.buildabrowser.babbrowser.renderer.uistate.Frame
 import net.buildabrowser.droided.network.imp.FetchBackendImp
 import net.buildabrowser.droided.painter.androidskia.AndroidSkiaComposePainter
+import net.buildabrowser.droided.ui.AndroidClipboardProvider
+import net.buildabrowser.droided.ui.AndroidUAUIFeatures
 import net.buildabrowser.droided.ui.component.BrowserChrome
 import net.buildabrowser.droided.ui.component.FrameGUI
 import net.buildabrowser.droided.ui.theme.BuildABrowserDroidedTheme
@@ -128,12 +134,21 @@ private fun createFrame(engine: RenderingEngine) : Frame {
 private fun createRenderingEngine(context: Context, painter: Painter) : RenderingEngine {
     val fetchBackend = FetchBackendImp()
     val loaderRegistry = DocumentLoaderRegistry.createDefault()
-    return RenderingEngine.create(
+    val fetchConfig = FetchConfig(
         fetchBackend,
+        { true },
+        InMemoryCookieStore({ false }))
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clipboardProvider = AndroidClipboardProvider(clipboard, context)
+    val uaUIFeatures = AndroidUAUIFeatures()
+    return RenderingEngine.create(
+        fetchConfig,
         Executors::newWorkStealingPool,
         painter,
         loaderRegistry,
-        context.assets::open
+        context.assets::open,
+        clipboardProvider,
+        uaUIFeatures
     )
 }
 

@@ -36,6 +36,7 @@ class ASFontMetrics(
     override fun height() = primaryMetrics.descent - primaryMetrics.ascent + primaryMetrics.leading
     override fun xHeight() = xHeight
     override fun ascent() = primaryMetrics.ascent
+    override fun descent() = primaryMetrics.descent
 
     // TODO: Group contiguous font runs so we can check an entire string at once
     override fun stringWidth(text: String): Float {

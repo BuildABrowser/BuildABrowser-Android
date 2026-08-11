@@ -5,10 +5,9 @@ import net.buildabrowser.babbrowser.painter.core.Paint
 
 class ASPaint : Paint {
     private var color = 0
-    private var offsetX = 0f
-    private var offsetY = 0f
-    private var scaling = 1f
     private var selectedFont: ASLoadedFont = noFont()
+    private var filled = false
+    private var strokeSize = 1f
 
     override fun setColor(color: Int) {
         this.color = color
@@ -24,4 +23,16 @@ class ASPaint : Paint {
     }
 
     override fun getFont(): ASLoadedFont = this.selectedFont
+
+    override fun setFilled(filled: Boolean) {
+        this.filled = filled
+    }
+
+    override fun getFilled() = this.filled
+
+    override fun setStrokeSize(strokeSize: Float) {
+        this.strokeSize = strokeSize
+    }
+
+    override fun getStrokeSize() = this.strokeSize
 }
