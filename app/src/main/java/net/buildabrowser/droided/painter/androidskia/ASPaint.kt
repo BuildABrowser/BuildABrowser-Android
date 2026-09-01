@@ -6,7 +6,7 @@ import net.buildabrowser.babbrowser.painter.core.Paint
 class ASPaint : Paint {
     private var color = 0
     private var selectedFont: ASLoadedFont = noFont()
-    private var filled = false
+    private var filled = true
     private var strokeSize = 1f
 
     override fun setColor(color: Int) {

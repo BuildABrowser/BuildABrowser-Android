@@ -33,6 +33,7 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
         rawPaint.textSize = 12f
         currentPaint.color = 0xFFFFFFFF.toInt()
         currentPaint.font = currentFont
+        syncPaint(currentPaint)
     }
 
     override fun withPaint(
@@ -66,7 +67,7 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
     }
 
     override fun saveTransform(paintFunc: Consumer<PaintCanvas>) {
-        matrixStack.add(Matrix(currentMatrix))
+        matrixStack.push(Matrix(currentMatrix))
         paintFunc.accept(this)
         canvas.setMatrix(matrixStack.pop())
     }
@@ -85,7 +86,7 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
         paintFunc: Consumer<PaintCanvas>
     ) {
         canvas.withSave {
-            canvas.clipRect(RectF(x, y, w, h))
+            canvas.clipRect(RectF(x, y, x + w, y + h))
             paintFunc.accept(this@ASPaintCanvas)
         }
     }
@@ -134,7 +135,7 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
             "Passed image must have been loaded via ASResourceLoader!"
         }
 
-        val rect = RectF(x, y, w, h)
+        val rect = RectF(x, y, x + w, y + h)
         canvas.drawBitmap(image.bitmap, null, rect, rawPaint)
     }
 
@@ -155,6 +156,8 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
 
     private fun syncPaint(paint: ASPaint) {
         rawPaint.color = paint.color
+        rawPaint.style = if (paint.filled) AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE
+        rawPaint.strokeWidth = paint.strokeSize
         this.currentFont = paint.font
     }
 
