@@ -1,5 +1,7 @@
 package net.buildabrowser.droided.ui.component
 
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +37,7 @@ import net.buildabrowser.babbrowser.renderer.uistate.event.FrameEventListener
 import java.net.URI
 import java.net.URLEncoder
 
+
 private const val SEARCH_QUERY = "https://html.duckduckgo.com/html/?q=%s"
 // TODO: Share the same constant as the code to make a new tab
 // TODO: Better yet, detect if we're on the initial page (as the user may navigate here later)
@@ -51,9 +54,10 @@ fun URLField(
     val colors = SearchBarDefaults.colors()
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val mainHandler = Handler(Looper.getMainLooper())
 
     DisposableEffect(frame.renderer) {
-        val listener = URLListener(textState, focusManager)
+        val listener = URLListener(textState, focusManager, mainHandler)
         frame.addEventListener(listener, true)
         // TODO: Also need to add a method to remove the event listener
         onDispose {  }
@@ -128,13 +132,16 @@ private fun searchToURL(urlText: String): URI {
 
 private class URLListener(
     private val shownURL: TextFieldState,
-    private val focusManager: FocusManager
+    private val focusManager: FocusManager,
+    private val mainHandler: Handler
 ) : FrameEventListener {
 
     override fun onURLChange(url: URI) {
-        val newText = if (url.toString() != DEFAULT_TAB) url.toString() else ""
-        shownURL.edit { replace(0, length, newText) }
-        focusManager.clearFocus()
+        mainHandler.post {
+            val newText = if (url.toString() != DEFAULT_TAB) url.toString() else ""
+            shownURL.edit { replace(0, length, newText) }
+            focusManager.clearFocus()
+        }
     }
 
 }

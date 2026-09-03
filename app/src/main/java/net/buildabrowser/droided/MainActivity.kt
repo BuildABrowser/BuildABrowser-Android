@@ -23,9 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
-import net.buildabrowser.babbrowser.cookies.stores.InMemoryCookieStore;
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
+import net.buildabrowser.babbrowser.cookies.stores.InMemoryCookieStore
 import net.buildabrowser.babbrowser.fetch.FetchConfig
-import net.buildabrowser.babbrowser.html.ua.UAUIFeatures
+import net.buildabrowser.babbrowser.fetch.FetchPolicy
 import net.buildabrowser.babbrowser.painter.core.Painter
 import net.buildabrowser.babbrowser.renderer.RenderingEngine
 import net.buildabrowser.babbrowser.renderer.loader.DocumentLoaderRegistry
@@ -34,6 +36,7 @@ import net.buildabrowser.droided.network.imp.FetchBackendImp
 import net.buildabrowser.droided.painter.androidskia.AndroidSkiaComposePainter
 import net.buildabrowser.droided.ui.AndroidClipboardProvider
 import net.buildabrowser.droided.ui.AndroidUAUIFeatures
+import net.buildabrowser.droided.ui.input.AndroidVirtualKeyboard
 import net.buildabrowser.droided.ui.component.BrowserChrome
 import net.buildabrowser.droided.ui.component.FrameGUI
 import net.buildabrowser.droided.ui.theme.BuildABrowserDroidedTheme
@@ -61,7 +64,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Browser(activity: Activity, modifier: Modifier = Modifier) {
     val painter = remember { AndroidSkiaComposePainter() }
-    val engine = remember { createRenderingEngine(activity, painter) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val engine = remember { createRenderingEngine(
+        activity, painter, keyboardController) }
 
     val frames: SnapshotStateMap<UUID, Frame> = remember { mutableStateMapOf() }
     val frameGUIs: SnapshotStateMap<UUID, FrameGUI> = remember { mutableStateMapOf() }
@@ -131,15 +136,20 @@ private fun createFrame(engine: RenderingEngine) : Frame {
     return frame
 }
 
-private fun createRenderingEngine(context: Context, painter: Painter) : RenderingEngine {
+private fun createRenderingEngine(
+    context: Context,
+    painter: Painter,
+    keyboardController: SoftwareKeyboardController?
+) : RenderingEngine {
     val fetchBackend = FetchBackendImp()
     val loaderRegistry = DocumentLoaderRegistry.createDefault()
     val fetchConfig = FetchConfig(
         fetchBackend,
-        { true },
-        InMemoryCookieStore({ false }))
+        object : FetchPolicy {},
+        InMemoryCookieStore { false })
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val clipboardProvider = AndroidClipboardProvider(clipboard, context)
+    val virtualKeyboard = AndroidVirtualKeyboard(keyboardController)
     val uaUIFeatures = AndroidUAUIFeatures()
     return RenderingEngine.create(
         fetchConfig,
@@ -148,6 +158,7 @@ private fun createRenderingEngine(context: Context, painter: Painter) : Renderin
         loaderRegistry,
         context.assets::open,
         clipboardProvider,
+        virtualKeyboard,
         uaUIFeatures
     )
 }

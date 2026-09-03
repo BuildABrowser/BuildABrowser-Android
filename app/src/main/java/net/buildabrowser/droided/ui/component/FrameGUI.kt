@@ -1,5 +1,6 @@
 package net.buildabrowser.droided.ui.component
 
+import androidx.compose.foundation.focusable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -7,10 +8,17 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import net.buildabrowser.babbrowser.painter.core.CanvasCallbacks
 import net.buildabrowser.babbrowser.painter.core.PaintCanvas
 import net.buildabrowser.babbrowser.renderer.uistate.Frame
 import net.buildabrowser.droided.painter.androidskia.AndroidSkiaComposePainter
+import net.buildabrowser.droided.ui.input.handleKeyEvent
+import net.buildabrowser.droided.ui.input.loopEvents
+
 
 class FrameGUI(val frame: Frame) {
 
@@ -41,10 +49,11 @@ class FrameGUI(val frame: Frame) {
 
     @Composable
     fun FrameComponent(modifier: Modifier = Modifier) {
-        val scaling = 1f // LocalDensity.current.density
+        val scaling = 160f / 96f
         val painter = remember { AndroidSkiaComposePainter() }
-        val callbacks = remember { FrameCallbacks(scaling * 160 / 96) }
+        val callbacks = remember { FrameCallbacks(scaling) }
         var repaintTick by remember { mutableIntStateOf(0) }
+        val focusRequester = remember { FocusRequester() }
 
         DisposableEffect(frame.renderer) {
             val listener = Runnable {
@@ -57,7 +66,15 @@ class FrameGUI(val frame: Frame) {
             }
         }
 
-        painter.PainterCanvas(callbacks, { repaintTick }, modifier)
+        painter.PainterCanvas(
+            callbacks, { repaintTick },
+            modifier = modifier
+                .pointerInput(Unit) {
+                    awaitPointerEventScope(loopEvents(frame, scaling, focusRequester))
+                }
+                .onKeyEvent { handleKeyEvent(frame, it) }
+                .focusRequester(focusRequester)
+                .focusable())
     }
 
 }
