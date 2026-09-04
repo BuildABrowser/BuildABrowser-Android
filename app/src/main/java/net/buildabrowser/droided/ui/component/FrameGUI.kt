@@ -16,8 +16,10 @@ import net.buildabrowser.babbrowser.painter.core.CanvasCallbacks
 import net.buildabrowser.babbrowser.painter.core.PaintCanvas
 import net.buildabrowser.babbrowser.renderer.uistate.Frame
 import net.buildabrowser.droided.painter.androidskia.AndroidSkiaComposePainter
+import net.buildabrowser.droided.ui.input.AndroidVirtualKeyboard
 import net.buildabrowser.droided.ui.input.handleKeyEvent
 import net.buildabrowser.droided.ui.input.loopEvents
+import net.buildabrowser.droided.ui.input.virtualKeyboardInput
 
 
 class FrameGUI(val frame: Frame) {
@@ -54,6 +56,7 @@ class FrameGUI(val frame: Frame) {
         val callbacks = remember { FrameCallbacks(scaling) }
         var repaintTick by remember { mutableIntStateOf(0) }
         val focusRequester = remember { FocusRequester() }
+        val virtualKeyboard = frame.frameAPIs().virtualKeyboard()
 
         DisposableEffect(frame.renderer) {
             val listener = Runnable {
@@ -74,7 +77,8 @@ class FrameGUI(val frame: Frame) {
                 }
                 .onKeyEvent { handleKeyEvent(frame, it) }
                 .focusRequester(focusRequester)
-                .focusable())
+                .focusable()
+                .virtualKeyboardInput(virtualKeyboard as AndroidVirtualKeyboard))
     }
 
 }

@@ -64,9 +64,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Browser(activity: Activity, modifier: Modifier = Modifier) {
     val painter = remember { AndroidSkiaComposePainter() }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val engine = remember { createRenderingEngine(
-        activity, painter, keyboardController) }
+    val engine = remember { createRenderingEngine(activity, painter) }
 
     val frames: SnapshotStateMap<UUID, Frame> = remember { mutableStateMapOf() }
     val frameGUIs: SnapshotStateMap<UUID, FrameGUI> = remember { mutableStateMapOf() }
@@ -138,8 +136,7 @@ private fun createFrame(engine: RenderingEngine) : Frame {
 
 private fun createRenderingEngine(
     context: Context,
-    painter: Painter,
-    keyboardController: SoftwareKeyboardController?
+    painter: Painter
 ) : RenderingEngine {
     val fetchBackend = FetchBackendImp()
     val loaderRegistry = DocumentLoaderRegistry.createDefault()
@@ -149,7 +146,7 @@ private fun createRenderingEngine(
         InMemoryCookieStore { false })
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val clipboardProvider = AndroidClipboardProvider(clipboard, context)
-    val virtualKeyboard = AndroidVirtualKeyboard(keyboardController)
+    val virtualKeyboardFactory = ::AndroidVirtualKeyboard
     val uaUIFeatures = AndroidUAUIFeatures()
     return RenderingEngine.create(
         fetchConfig,
@@ -158,7 +155,7 @@ private fun createRenderingEngine(
         loaderRegistry,
         context.assets::open,
         clipboardProvider,
-        virtualKeyboard,
+        virtualKeyboardFactory,
         uaUIFeatures
     )
 }

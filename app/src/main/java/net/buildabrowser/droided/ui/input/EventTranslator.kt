@@ -28,6 +28,7 @@ import net.buildabrowser.babbrowser.renderer.event.events.RendererKeyboardEvent.
 import net.buildabrowser.babbrowser.renderer.event.events.RendererMouseEvent
 import net.buildabrowser.babbrowser.renderer.event.events.RendererMouseEvent.MouseEventType
 import net.buildabrowser.babbrowser.renderer.uistate.Frame
+import android.view.KeyEvent as AndroidKeyEvent
 
 fun loopEvents(
     frame: Frame,
