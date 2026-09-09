@@ -2,16 +2,21 @@ package net.buildabrowser.droided.network.imp
 
 import net.buildabrowser.babbrowser.common.util.CommonUtil
 import net.buildabrowser.babbrowser.fetch.FetchBackend
+import net.buildabrowser.babbrowser.fetch.FetchBody
 import net.buildabrowser.babbrowser.fetch.FetchRequest
 import net.buildabrowser.babbrowser.fetch.FetchResponse
 import net.buildabrowser.babbrowser.fetch.HeaderList
 import net.buildabrowser.babbrowser.fetch.imp.FetchImpUtil
 import net.buildabrowser.babbrowser.fetch.mutable.MutableFetchResponse
 import net.buildabrowser.babbrowser.network.ExtensionUtil
+import net.buildabrowser.babbrowser.stream.ReadableStreamDefaultReader
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.Response
 import okio.Buffer
 import org.slf4j.Logger
@@ -23,6 +28,9 @@ import java.nio.file.Files
 import java.util.Optional
 import java.util.function.Consumer
 
+const val CHROME_UA_STRING
+        : String = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)"
+        + " Chrome/146.0.0.0 Safari/537.36")
 
 // Seems the only NIO callback-based library is Cronet. It requires Play Store, so doesn't work on some Android forks
 // Plus, it's ripped from Chromium, and I'm not exactly making Chromium 2. Bad enough that I'm already using Skia and Gson
@@ -38,14 +46,31 @@ class FetchBackendImp() : FetchBackend {
         request: FetchRequest,
         byteConsumer: Consumer<Optional<ByteBuffer>>
     ) {
+        // TODO: Correct way to set origin
+        val url = request.currentURL()
+        var origin = url.scheme + "://" + url.host
+        if (!(
+            (url.scheme == "https" && url.port == 443)
+            || (url.scheme == "http" && url.port == 80)
+            || url.port == -1
+        )) {
+            origin = origin + ":" + url.port
+        }
+
         // TODO: Include the headers
-        val httpRequest =
+        println(request.method())
+        val httpRequestBuilder =
             Request.Builder()
                 .url(request.currentURL().toString())
+                .method(request.method(), createRequestBody(request))
                 .header("User-Agent", chooseUserAgent(request))
                 .header("Accept", "text/html, text/css, image/png, image/jpeg, */*")
-                .build()
+                .header("Sec-CH-UA", "\"BuildABrowser Test Program\";v=\"0\"")
+                .header("Origin", origin)
 
+        request.headerList().forEach(httpRequestBuilder::header);
+
+        val httpRequest = httpRequestBuilder.build()
         httpClient
             .newCall(httpRequest)
             .enqueue(object : Callback {
@@ -105,16 +130,29 @@ class FetchBackendImp() : FetchBackend {
         }
     }
 
+    private fun createRequestBody(request: FetchRequest): RequestBody? {
+        if (request.body() == null) {
+            return null
+        }
+
+        val body = request.body() as FetchBody
+        val reader = body.stream.getReader(null) as ReadableStreamDefaultReader
+
+        val contentType: MediaType? = request.headerList().get("content-type").toMediaTypeOrNull()
+        return StreamReaderRequestBody(body, reader, contentType)
+    }
+
     // Unfortunately DDG captchas the user with the default UA (and captchas would require JS)
     private fun chooseUserAgent(request: FetchRequest): String {
-        // TODO: Report correct OS
-        return when (request.url().host) {
-            "html.duckduckgo.com", "duckduckgo.com" ->
-                ("Mozilla/5.0 (Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0"
-                + " Safari/537.36 BABBrowser/0.1.0")
-            "whatismybrowser.com", "www.whatismybrowser.com" -> "BABBrowser/0.1.0 (Android)"
-            else -> "Mozilla/5.0 (Android) BABBrowser/0.1.0 Firefox/149.0 (Not actually Firefox)"
+        val uaTemplate = when (request.url().getHost()) {
+            "html.duckduckgo.com", "duckduckgo.com" -> CHROME_UA_STRING + " BABBrowser/0.1.0"
+            "news.ycombinator.com" -> CHROME_UA_STRING
+            "whatismybrowser.com", "www.whatismybrowser.com" -> "BABBrowser/0.1.0 (%OS)"
+            "buildabrowser.net", "frogfind.de" -> "Mozilla/5.0 (%OS) BABBrowser/0.1.0"
+            else -> "Mozilla/5.0 (&OS) BABBrowser/0.1.0 Firefox/149.0 (Not actually Firefox)"
         }
+        val osInfo = "Linux; Android 10; K"
+        return uaTemplate.replace("%OS", osInfo)
     }
 
     companion object {
