@@ -1,8 +1,6 @@
 package net.buildabrowser.droided
 
 import android.app.Activity
-import android.content.ClipboardManager
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,26 +21,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.SoftwareKeyboardController
-import net.buildabrowser.babbrowser.cookies.stores.InMemoryCookieStore
-import net.buildabrowser.babbrowser.fetch.FetchConfig
-import net.buildabrowser.babbrowser.fetch.FetchPolicy
-import net.buildabrowser.babbrowser.painter.core.Painter
+import net.buildabrowser.babbrowser.embedding.android.AndroidEmbedding.createRenderingEngine
+import net.buildabrowser.babbrowser.embedding.android.ui.component.FrameGUI
 import net.buildabrowser.babbrowser.renderer.RenderingEngine
-import net.buildabrowser.babbrowser.renderer.loader.DocumentLoaderRegistry
 import net.buildabrowser.babbrowser.renderer.uistate.Frame
-import net.buildabrowser.droided.network.imp.FetchBackendImp
-import net.buildabrowser.droided.painter.androidskia.AndroidSkiaComposePainter
-import net.buildabrowser.droided.ui.AndroidClipboardProvider
-import net.buildabrowser.droided.ui.AndroidUAUIFeatures
-import net.buildabrowser.droided.ui.input.AndroidVirtualKeyboard
 import net.buildabrowser.droided.ui.component.BrowserChrome
-import net.buildabrowser.droided.ui.component.FrameGUI
 import net.buildabrowser.droided.ui.theme.BuildABrowserDroidedTheme
 import java.net.URI
 import java.util.UUID
-import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -63,8 +49,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Browser(activity: Activity, modifier: Modifier = Modifier) {
-    val painter = remember { AndroidSkiaComposePainter() }
-    val engine = remember { createRenderingEngine(activity, painter) }
+    val engine = remember { createRenderingEngine(activity) }
 
     val frames: SnapshotStateMap<UUID, Frame> = remember { mutableStateMapOf() }
     val frameGUIs: SnapshotStateMap<UUID, FrameGUI> = remember { mutableStateMapOf() }
@@ -132,32 +117,6 @@ private fun createFrame(engine: RenderingEngine) : Frame {
     val frame = engine.createFrame()
     frame.navigate(URI("https://buildabrowser.net/"))
     return frame
-}
-
-private fun createRenderingEngine(
-    context: Context,
-    painter: Painter
-) : RenderingEngine {
-    val fetchBackend = FetchBackendImp()
-    val loaderRegistry = DocumentLoaderRegistry.createDefault()
-    val fetchConfig = FetchConfig(
-        fetchBackend,
-        object : FetchPolicy {},
-        InMemoryCookieStore { false })
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clipboardProvider = AndroidClipboardProvider(clipboard, context)
-    val virtualKeyboardFactory = ::AndroidVirtualKeyboard
-    val uaUIFeatures = AndroidUAUIFeatures()
-    return RenderingEngine.create(
-        fetchConfig,
-        Executors::newWorkStealingPool,
-        painter,
-        loaderRegistry,
-        context.assets::open,
-        clipboardProvider,
-        virtualKeyboardFactory,
-        uaUIFeatures
-    )
 }
 
 private class UIState(

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 pluginManagement {
     repositories {
         google {
@@ -19,14 +21,29 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
 rootProject.name = "BuildABrowser Droided"
 include(":app")
+include(":Painter:Android")
+include(":Embedding:Android")
 
-includeBuild("/home/jason/Code/BAB") {
-    dependencySubstitution {
-        substitute(module("net.buildabrowser.babbrowser:Renderer")).using(project(":Renderer"))
+val babPath: String? = providers.gradleProperty("bab.dir").orNull
+    ?: providers.environmentVariable("BAB_DIR").orNull
+    ?: file("local.properties").takeIf { it.exists() }?.let { propFile ->
+        Properties().apply { propFile.inputStream().use { load(it) } }.getProperty("bab.dir")
+    }
+
+val babDir = babPath?.let { file(it) }
+
+if (babDir != null && babDir.isDirectory) {
+    includeBuild(babDir) {
+        dependencySubstitution {
+            substitute(module("com.github.buildabrowser.buildabrowser:PainterCore")).using(project(":PainterCore"))
+            substitute(module("com.github.buildabrowser.buildabrowser:Renderer")).using(project(":Renderer"))
+            substitute(module("com.github.buildabrowser.buildabrowser:Common")).using(project(":Common"))
+        }
     }
 }
