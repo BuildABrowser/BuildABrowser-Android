@@ -19,10 +19,10 @@ class ASCommandList(private val width: Int, private val height: Int) : ASPaintBi
     override fun draw(
         canvas: Canvas,
         paint: Paint?,
-        x: Int,
-        y: Int
+        x: Float,
+        y: Float
     ) {
-        canvas.withTranslation(x.toFloat(), y.toFloat()) {
+        canvas.withTranslation(x, y) {
             drawPicture(picture);
         }
     }

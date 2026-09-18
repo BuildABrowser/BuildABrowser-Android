@@ -1,9 +1,15 @@
 package net.buildabrowser.babbrowser.painter.android
 
 import android.graphics.Canvas
+import android.graphics.DrawFilter
 import android.graphics.Matrix
+import android.graphics.PaintFlagsDrawFilter
+import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.util.Log
 import androidx.core.graphics.withSave
 import net.buildabrowser.babbrowser.painter.core.ClipShapeSpec
 import net.buildabrowser.babbrowser.painter.core.FontMetrics
@@ -17,13 +23,13 @@ import java.util.Deque
 import java.util.function.Consumer
 import android.graphics.Paint as AndroidPaint
 
+
 class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
 
     private val matrixStack: Deque<Matrix> = ArrayDeque()
     private val rawPaint = AndroidPaint()
     private val transform = ASTransform(canvas)
 
-    private var currentMatrix = Matrix()
     private var currentPaint = ASPaint()
     private var currentFont = noFont()
 
@@ -96,16 +102,29 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
         }
     }
 
+    private val shapedClipMaskPaint = AndroidPaint().apply {
+        isAntiAlias = false
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+    }
+    private val shapedClipBounds = RectF()
+
     override fun withShapedClip(
         shapeFunc: Consumer<ClipShapeSpec>,
         paintFunc: Consumer<PaintCanvas>
     ) {
-        canvas.withSave {
-            val spec = ASClipShapeSpec()
-            shapeFunc.accept(spec)
-            canvas.clipPath(spec.path())
-            paintFunc.accept(this@ASPaintCanvas)
-        }
+        val spec = ASClipShapeSpec()
+        shapeFunc.accept(spec)
+        val path = spec.path()
+        path.computeBounds(shapedClipBounds, true)
+        val checkpoint = canvas.saveLayer(shapedClipBounds, null)
+
+        paintFunc.accept(this@ASPaintCanvas)
+
+        val originalFillType = path.fillType
+        path.fillType = Path.FillType.INVERSE_WINDING
+        canvas.drawPath(path, shapedClipMaskPaint)
+        path.fillType = originalFillType
+        canvas.restoreToCount(checkpoint)
     }
 
     override fun drawBox(x: Float, y: Float, w: Float, h: Float) {
@@ -140,13 +159,20 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
             "Passed image must have been loaded via ASResourceLoader!"
         }
 
+        // TODO: TEMPHACK to fix small repeating textures
+        val isTinyPattern = image.width() <= 8 || image.height() <= 8
+        val oldIsFilterBitmap = rawPaint.isFilterBitmap
+        rawPaint.isFilterBitmap = !isTinyPattern
+
         val rect = RectF(x, y, x + w, y + h)
         canvas.drawBitmap(image.bitmap, null, rect, rawPaint)
+
+        rawPaint.isFilterBitmap = oldIsFilterBitmap
     }
 
     override fun drawBitMap(
-        x: Int,
-        y: Int,
+        x: Float,
+        y: Float,
         bitMap: PaintBitMap?
     ) {
         require (bitMap is ASPaintBitMap) {
@@ -163,6 +189,7 @@ class ASPaintCanvas(private val canvas: Canvas) : PaintCanvas {
         rawPaint.color = paint.color
         rawPaint.style = if (paint.filled) AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE
         rawPaint.strokeWidth = paint.strokeSize
+        rawPaint.isAntiAlias = false
         this.currentFont = paint.font
     }
 

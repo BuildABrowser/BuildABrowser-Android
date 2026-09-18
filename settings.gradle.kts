@@ -41,9 +41,9 @@ val babDir = babPath?.let { file(it) }
 if (babDir != null && babDir.isDirectory) {
     includeBuild(babDir) {
         dependencySubstitution {
-            substitute(module("com.github.buildabrowser.buildabrowser:PainterCore")).using(project(":PainterCore"))
-            substitute(module("com.github.buildabrowser.buildabrowser:Renderer")).using(project(":Renderer"))
-            substitute(module("com.github.buildabrowser.buildabrowser:Common")).using(project(":Common"))
+            substitute(module("com.github.BuildABrowser.BuildABrowser:PainterCore")).using(project(":PainterCore"))
+            substitute(module("com.github.BuildABrowser.BuildABrowser:Renderer")).using(project(":Renderer"))
+            substitute(module("com.github.BuildABrowser.BuildABrowser:Common")).using(project(":Common"))
         }
     }
 }

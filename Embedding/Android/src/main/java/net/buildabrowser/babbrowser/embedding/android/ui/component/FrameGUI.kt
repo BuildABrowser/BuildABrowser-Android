@@ -19,7 +19,10 @@ import net.buildabrowser.babbrowser.embedding.android.ui.input.virtualKeyboardIn
 import net.buildabrowser.babbrowser.painter.android.AndroidSkiaComposePainter
 import net.buildabrowser.babbrowser.painter.core.CanvasCallbacks
 import net.buildabrowser.babbrowser.painter.core.PaintCanvas
+import net.buildabrowser.babbrowser.renderer.RendererTransformOptions
+import net.buildabrowser.babbrowser.renderer.paint.painterwrap.PaintCanvasWrapper
 import net.buildabrowser.babbrowser.renderer.uistate.Frame
+import org.slf4j.LoggerFactory
 
 class FrameGUI(val frame: Frame) {
 
@@ -33,18 +36,13 @@ class FrameGUI(val frame: Frame) {
         }
 
         override fun paint(canvas: PaintCanvas) {
-            frame.renderer.resize(
-                (width / scaling).toInt(),
-                (height / scaling).toInt())
+            val transformOptions = RendererTransformOptions(scaling, scaling)
+            frame.renderer.resize(width.toInt(), height.toInt(), transformOptions)
+            LoggerFactory.getLogger(javaClass).info("Scaling {}", scaling)
             canvas.withPaint({ it.color = 0xFFFFFFFF.toInt() }) {
                 it.drawBox(0f, 0f, width, height)
             }
-            canvas.withTransform(
-                { it.scale(scaling, scaling) },
-                {
-                    frame.renderer.draw(it)
-                }
-            )
+            frame.renderer.draw(canvas, transformOptions)
         }
     }
 
