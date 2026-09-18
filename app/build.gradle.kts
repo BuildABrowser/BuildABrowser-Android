@@ -52,7 +52,7 @@ android {
 
 dependencies {
     implementation(libs.renderer)
-    implementation(project(":Embedding:Android"))
+    implementation(project(":EmbeddingAndroid"))
     implementation(libs.okhttp)
     implementation(libs.t2003.logger.impl)
     implementation(libs.t2003.logger.binder)

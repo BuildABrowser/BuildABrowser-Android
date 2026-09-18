@@ -59,7 +59,7 @@ dependencies {
     implementation(libs.androidx.ui)
     "withResourcesScope"(libs.renderer)
     api(libs.renderer)
-    implementation(project(":Painter:Android"))
+    implementation(project(":PainterAndroid"))
     implementation(libs.okhttp)
     implementation(libs.slf4j.api)
 

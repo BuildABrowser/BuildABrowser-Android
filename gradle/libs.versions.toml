@@ -18,7 +18,7 @@ t2003LoggerImpl = "1.0.2"
 runtime = "1.12.1"
 ui = "1.12.1"
 foundation = "1.12.1"
-renderer="7141cbbaea"
+renderer="c921cff73d"
 
 [libraries]
 renderer = { module = "com.github.BuildABrowser.BuildABrowser:Renderer", version.ref="renderer" }

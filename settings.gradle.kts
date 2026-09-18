@@ -27,8 +27,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "BuildABrowser Droided"
 include(":app")
-include(":Painter:Android")
-include(":Embedding:Android")
+include(":PainterAndroid")
+include(":EmbeddingAndroid")
+project(":PainterAndroid").projectDir = file("Painter/Android")
+project(":EmbeddingAndroid").projectDir = file("Embedding/Android")
 
 val babPath: String? = providers.gradleProperty("bab.dir").orNull
     ?: providers.environmentVariable("BAB_DIR").orNull
